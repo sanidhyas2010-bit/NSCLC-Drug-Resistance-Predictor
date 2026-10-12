@@ -1,27 +1,28 @@
-# Predicting Drug Resistance in Lung Cancer (NSCLC) 🧬
+# Phase 1: Machine Learning Prediction of Erlotinib Resistance Biomarkers in NSCLC
 
+**Objective:** To train a Random Forest regression model on clinical pharmacogenomic data to identify the primary genomic mutations predictive of resistance to Erlotinib (an EGFR-targeted therapy) in Non-Small Cell Lung Cancer (NSCLC).
 
-## Why I Built This
+## The Clinical Context
+Cancer drug resistance is a primary failure point in clinical oncology. This initial phase was designed to test whether machine learning could accurately identify known drivers of drug resistance purely from raw genomic and pharmacological screening data, without being pre-programmed with biological rules. 
 
-I built this project to see how machine learning can be applied on a real-world biological problem. Cancer drug resistance is a huge issue in clinical oncology, and I'm interested in seeing whether Python can effectively uncover the mechanisms through which resistance develops.
+## Methodology & Data Integration
+To build the custom training set, I had two independent clinical databases that were integrated using Python:
+1. **Genomics of Drug Sensitivity in Cancer (GDSC2):** Sourced from the Wellcome Sanger Institute, this provided the continuous IC50 values (drug concentration required for 50% growth inhibition), serving as the quantitative measure of Erlotinib resistance for each NSCLC cell line.
+2. **COSMIC Cell Line Project:** Provided the matched binary somatic mutation matrices for the corresponding cell lines.
 
-## What This Is
-This project involves me building a custom training set out of genomic and pharmaceutical data to determine the ability of a Random Forest Regressor to predict resistance pathways in Non-Small Cell Lung Carcinoma (NSCLC).
+The Python script (`analysis.py`) merges these datasets into a unified matrix (`master_research_data.csv`) and trains a **Random Forest Regressor** to predict IC50 values based on mutational profiles. The model's feature importance weights were then extracted to identify the genes most highly predictive of altered drug response.
 
-## What This Isn't
-This isn't a finished product. This is me experimenting in Python to see how effective an ML approach can be at finding interesting biological information.
+## Key Findings
 
-## Building the Research Set
-I gathered and cleaned the following official databases in Python:
-GDSC2 (Genomics of Drug Sensitivity in Cancer) from the Wellcome Sanger Institute: Containing the IC50 values (drug resistances) for each cell line
-Cosmic Cell Line Project: Containing the mutation sets for each cell line
+Without requiring any hard-coded biological priors, the Random Forest model successfully identified clinically validated biomarkers of Erlotinib response:
 
-## What This Found
-I found that without requiring any biological information, the AI was successfully able to find known resistance pathways! The gene EGFR was found to be the main resistance pathway, which is correct as EGFR is the target of Erlotinib (an EGFR-inhibitor). The AI additionally found secondary resistance pathways, including the tumor-suppressor genes STK11 and TP53.
+* **Primary Feature (`EGFR`):** The model identified the *EGFR* gene as the highest-weighted predictive feature. This perfectly aligns with clinical reality, as Erlotinib is specifically designed to target mutant *EGFR* kinase domains.
+* **Secondary Resistance Features (`TP53` & `STK11`):** The model successfully identified mutations in key tumor-suppressor genes, notably *TP53* and *STK11*, as major secondary variables predictive of drug response variance. 
 
-## Files
+## Transition to Phase 2: The "Double-Mutant" Problem
+Phase 1 successfully highlighted the viability of the ML pipeline and highlighted a severe clinical obstacle: cancers harboring concurrent mutations in both *EGFR* (the oncogenic driver) and *TP53* (the disabled tumor suppressor) represent a highly aggressive, treatment-refractory profile. 
 
-`analysis.py`: My Python script which merges the two sets of data and builds the Random Forest Regressor model, finding the most relevant genes. `master_research_data.csv`: The combined set of data relating NSCLC cell lines to their genetic mutations. `erlotinib_resistance_chart.png`: A bar chart displaying the top 10 most relevant genes discovered by the AI.
+Because standard targeted therapies like Erlotinib struggle against this specific mutational combination, **Phase 2** of this project shifts to the Broad Institute's PRISM Repurposing dataset to conduct a massive computational drug screen, seeking a novel compound capable of eradicating the *EGFR/TP53* double-mutant "super-cancer."
 
 ## PHASE 2: OVERCOMING DOUBLE-MUTATION DRUG RESISTANCE
 
@@ -34,7 +35,7 @@ In order to find potential backup therapies, I created a Python data pipeline to
 The pipeline:
 1. Cross-referenced Hotspot and Damaging mutation matrices to mathematically find lung cancer cell lines that contain both an EGFR Hotspot mutation and a non-functional TP53 gene.
 2. Standardized ID mismatches (PR- vs ACH-) between databases using an `OmicsProfiles` mapping dictionary.
-3. Used Pandas `groupby()` and aggregation functions to calculate average AUC scores for thousands of clinical compounds screened against these double-mutant cancer cells, isolating the lowest AUC scores (most cytotoxic compounds).
+3. Used Pandas groupby() and aggregation functions to calculate average AUC scores for thousands of clinical compounds screened against these 3 highly specific double-mutant cancer models, isolating the lowest average AUC scores (most cytotoxic compounds).
 
 **The Results:**
 
@@ -42,7 +43,7 @@ The clinical screening data perfectly validated the biological hypothesis—targ
 
 ![Phase 2 Drug Resistance Chart](phase2_real_data_chart.png)
 
-Instead, the results prove that heavily cytotoxic compounds are required to kill these double-mutant cancer cells by physically preventing cell division, DNA replication, or forcing apoptosis:
+Instead, the results demonstrate that heavily cytotoxic compounds are required to kill these double-mutant cancer cells by physically preventing cell division, DNA replication, or forcing apoptosis:
 
 | Cell Skeleton Freezers (Microtubule Inhibitors) | DNA Shredders (Topoisomerase/DNA Synthesis Inhibitors) | p53-Bypass Compounds (Apoptosis Forcers) |
 | :--- | :--- | :--- |
@@ -50,7 +51,7 @@ Instead, the results prove that heavily cytotoxic compounds are required to kill
 | Epothilone-B/D | Exatecan-Mesylate | Romidepsin |
 | | | Sangivamycin |
 
-*Note: To run this file locally, you'll need to download the raw Broad Institute DepMap Public 26Q1 and PRISM Repurposing Secondary Screen `.csv` datasets into the project directory. They are too large to be uploaded to GitHub and are excluded by the `.gitignore` file.*
+Note: To run this file locally, you'll need to download the raw Broad Institute DepMap Public 20Q2 and PRISM Repurposing 20Q2 Secondary Screen .csv datasets into the project directory. They are too large to be uploaded to GitHub and are excluded by the .gitignore file.
 
 
 # Phase 3: Baseline Transcriptomic Signatures Associated with Sangivamycin Tolerance in NSCLC
